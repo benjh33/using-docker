@@ -1,20 +1,26 @@
 import requests
 import hashlib
 import redis
+import html
+import os
 
 from flask import Flask, Response, request
 
 app = Flask(__name__)
 default_name = "Joe Bloggs"
 unique_salt = "unique-salt"
-cache = redis.StrictRedis('redis')
+cache = redis.StrictRedis(os.environ.get('REDIS_PORT_6379_TCP_ADDR', ''))
+dmonster = "http://{}:{}".format(
+        os.environ.get('DNMONSTER_PORT_8080_TCP_ADDR', ''), 
+        os.environ.get('DNMONSTER_PORT_8080_TCP_PORT', ''))
 
 
 @app.route('/monster/<name>')
 def get_identicon(name):
-    image = cache.get(name)
+    image = cache.get(html.escape(name, quote=True))
     if image is None:
-        r = requests.get('http://dnmonster:8080/monster/' + name + '?size=80')
+        r = requests.get(dmonster + '/monster/' + \
+                name + '?size=80')
         image = r.content
         cache.set(name, image)
     return Response(image, mimetype='image/png')
@@ -23,7 +29,7 @@ def get_identicon(name):
 def main():
     name = default_name
     if request.method == "POST":
-        name = request.form.get('name')
+        name = html.escape(request.form.get('name'), quote=True)
     hash_name = hashlib.sha256((name + unique_salt).encode()).hexdigest()
     header = """
     <html><head><title>Identidock</title></head><body>
