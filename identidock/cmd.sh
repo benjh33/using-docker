@@ -9,6 +9,6 @@ elif [ "$ENV" = 'UNIT' ]; then
     python tests.py
 else
     echo "Running production server"
-    exec uwsgi --http 0.0.0.0:9090 --uwsgi-file /app/identidock.py \
+    exec uwsgi --http 0.0.0.0:9090 --wsgi-file /app/identidock.py \
         --callable app --stats 0.0.0.0:9191
 fi
