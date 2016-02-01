@@ -7,10 +7,10 @@ sudo docker-compose $COMPOSE_ARGS build --no-cache
 sudo docker-compose $COMPOSE_ARGS up -d
 # start
 sudo docker-compose $COMPOSE_ARGS run --no-deps --rm -e ENV=UNIT identidock
-ERR=$
+ERR=$?
 # run system tests if units passed
-if [ $ERR -eq 0 ];then
-    IP=$(sudo docker inspect -f {{ .NetworkSettings.IPAddress }} jenkins_identidock_1)
+if [ "$ERR" -eq 0 ];then
+    IP=$(sudo docker inspect -f '{{ .NetworkSettings.IPAddress }}' jenkins_identidock_1)
     CODE=$(curl -sL -w "%{http_code}" $IP:9090/monster/bla -o /dev/null) || true
     if [ $CODE -eq 200 ]; then
         echo "Tests passed - tagging images"
@@ -18,9 +18,9 @@ if [ $ERR -eq 0 ];then
         sudo docker tag -f jenkins_identidock_1 benjh33/identidock:$HASH
         sudo docker tag -f jenkins_identidock_1 benjh33/identidock:newest
         echo "Pushing to dockerhub"
-        docker login -u benjh33
-        docker push benjh33/identidock:$HASH
-        docker push benjh33/identidock:newest
+        sudo docker login -u benjh33 -p $DOCKER_PASS -e bjameshunter@gmail.com
+        sudo docker push benjh33/identidock:$HASH
+        sudo docker push benjh33/identidock:newest
     else
         echo "Site returned " $CODE
         ERR=1
