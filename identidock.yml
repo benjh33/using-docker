@@ -1,7 +1,7 @@
 ---
 - hosts: identidock
-    sudo: yes
-    tasks:
+  sudo: yes
+  tasks:
     - name: easy_install
       apt: package=python-setuptools
     - name: pip
