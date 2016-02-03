@@ -1,0 +1,53 @@
+---
+- hosts: identidock
+    sudo: yes
+    tasks:
+    - name: easy_install
+      apt: package=python-setuptools
+    - name: pip
+      easy_install: name=pip
+    - name: docker-py
+      pip: name=docker-py
+    - name: redis container
+      docker: 
+        name: redis
+        image: redis:3
+        pull: always
+        state: reloaded
+        restart_policy: always
+    - name: dnmonster container
+      docker: 
+        name: dnmonster 
+        image: amouat/dnmonster:1.0
+        pull: always
+        state: reloaded
+        restart_policy: always
+    - name: identidock container
+      docker: 
+        name: identidock
+        image: benjh33/identidock_auto:auto
+        pull: always
+        state: reloaded
+        restart_policy: always
+        links:
+          - "dnmonster:dnmonster"
+          - "redis:redis"
+        env:
+          ENV: PROD
+    - name: proxy container
+      docker:
+        name: proxy
+        image: benjh33/identiproxy:1.0
+        pull: always
+        state: reloaded
+        restart_policy: always
+        ports:
+          - "80:80"
+        links:
+          - "identidock:identidock"
+        env:
+          NGINX_PROXY: "http://identidock:9090"
+          NGINX_HOST: "0.0.0.0"
+
+
+

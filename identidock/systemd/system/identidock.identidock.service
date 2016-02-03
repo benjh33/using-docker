@@ -1,0 +1,26 @@
+[Unit]
+Description=Identidock container for identidock
+After=docker.service
+Requires=docker.service
+After=identidock.redis.service
+Requires=identidock.redis.service
+After=identidock.dnmonster.service
+Requires=identidock.dnmonster.service
+
+[Service]
+TimeoutStartSec=0
+Restart=always
+ExecStartPre=-/usr/bin/docker stop identidock 
+ExecStartPre=-/usr/bin/docker rm identidock 
+ExecStartPre=/usr/bin/docker pull benjh33/identidock_auto:auto
+ExecStart=/usr/bin/docker run  --name identidock \
+    --link redis --link dnmonster \
+    -e ENV=PROD benjh33/identidock_auto:auto
+
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+
